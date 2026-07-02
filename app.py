@@ -4,7 +4,7 @@ import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(page_title="ワイのぽいぽいぽいぽぽいぽいぽぴーデータ", layout="wide")
+st.set_page_config(page_title="ポイ活データ", layout="wide")
 
 # ▼ご自身のスプレッドシートURLに書き換えてください
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1hcBElwsxmWfjU7Zhxqwuy4kMDDJm_yVnI6m2f1z2rAM/edit?gid=0#gid=0/"
@@ -17,7 +17,7 @@ def check_password():
         st.session_state["password_correct"] = False
 
     if not st.session_state["password_correct"]:
-        st.title("🔒 ポイ活通帳 ログイン")
+        st.title("🔒 ワイのぽいぽいぽいぽぽいぽいぽぴーデータ ログイン")
         pwd = st.text_input("パスワードを入力してください", type="password")
         if st.button("ログイン"):
             if pwd == MY_PASSWORD:
