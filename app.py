@@ -85,7 +85,8 @@ def load_point_defs():
 
 def save_ledger(df):
     df_save = df.copy()
-    df_save['日付'] = df_save['日付'].dt.strftime('%Y-%m-%d')
+    # ▼ pd.to_datetime() で包んで強制的に日付型にしてから変換する
+    df_save['日付'] = pd.to_datetime(df_save['日付']).dt.strftime('%Y-%m-%d')
     df_save = df_save.fillna("")
     for col in ["取引通番", "取得", "利用"]:
         if col in df_save.columns:
