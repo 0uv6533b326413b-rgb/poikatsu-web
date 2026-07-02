@@ -17,7 +17,7 @@ def check_password():
         st.session_state["password_correct"] = False
 
     if not st.session_state["password_correct"]:
-        st.title("🔒 ワイのぽいぽいぽいぽぽいぽいぽぴーデータ ログイン")
+        st.title("🔒 ワイのポイポイポイぽポイポイぽぴー ログイン")
         pwd = st.text_input("パスワードを入力してください", type="password")
         if st.button("ログイン"):
             if pwd == MY_PASSWORD:
