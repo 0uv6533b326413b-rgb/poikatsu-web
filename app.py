@@ -4,7 +4,7 @@ import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(page_title="ポイ活通帳Web", layout="wide")
+st.set_page_config(page_title="ワイのぽいぽいぽいぽぽいぽいぽぴーデータ", layout="wide")
 
 # ▼ご自身のスプレッドシートURLに書き換えてください
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1hcBElwsxmWfjU7Zhxqwuy4kMDDJm_yVnI6m2f1z2rAM/edit?gid=0#gid=0/"
@@ -182,9 +182,12 @@ elif menu == "獲得集計・増減推移表":
         
         # --- 追加：クリックで展開するグラフ ---
         with st.expander("📈 月別の獲得・利用グラフを表示する"):
-            # 月ごとに取得と利用の合計を計算して棒グラフ化
             graph_df = df.groupby('年月')[['取得', '利用']].sum()
-            st.bar_chart(graph_df)
+            
+            # 【変更点】グラフが太すぎるのを防ぐため、画面を分割して左半分にだけ表示します
+            col1, col2 = st.columns([1, 1]) # [1, 1]は左と右の比率です（半々）
+            with col1:
+                st.bar_chart(graph_df)
         # ----------------------------------
 
         st.subheader("① 獲得・利用 集計表")
