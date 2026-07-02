@@ -31,7 +31,7 @@ def check_password():
 if not check_password():
     st.stop()
 
-st.title("💳 ポイ活通帳 (クラウド版)")
+st.title("💳 ポイ活通帳")
 
 USES = ["買い物", "貯", "運用推移", "キャンペーン", "ポイント還元", "ポイント利用", "チャージ", "失効", "発券・交換など"]
 STATUSES = ["確定", "処理中", "拒否", "調査"]
