@@ -11,7 +11,7 @@ SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1hcBElwsxmWfjU7Zhxqwuy
 
 def check_password():
     # ▼ご自身の好きなパスワードに書き換えてください
-    MY_PASSWORD = "poikatsu2026"
+    MY_PASSWORD = "tkhr_WD&030118"
 
     if "password_correct" not in st.session_state:
         st.session_state["password_correct"] = False
@@ -180,6 +180,13 @@ elif menu == "獲得集計・増減推移表":
     if not df.empty:
         df['年月'] = df['日付'].dt.to_period('M').astype(str)
         
+        # --- 追加：クリックで展開するグラフ ---
+        with st.expander("📈 月別の獲得・利用グラフを表示する"):
+            # 月ごとに取得と利用の合計を計算して棒グラフ化
+            graph_df = df.groupby('年月')[['取得', '利用']].sum()
+            st.bar_chart(graph_df)
+        # ----------------------------------
+
         st.subheader("① 獲得・利用 集計表")
         pivot = pd.pivot_table(
             df, index="ポイント名", columns="年月", values=["取得", "利用"], 
@@ -211,6 +218,9 @@ elif menu == "獲得集計・増減推移表":
             st.dataframe(pivot_net.style.map(color_red), use_container_width=True)
         except AttributeError:
             st.dataframe(pivot_net.style.applymap(color_red), use_container_width=True)
+            
+    else:
+        st.info("まだデータがありません。")
 
 elif menu == "ポイント残高表":
     st.header("💰 現在のポイント残高")
