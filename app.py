@@ -53,10 +53,10 @@ try:
     gc = init_connection()
     sh = gc.open_by_url(SPREADSHEET_URL)
     ws_ledger = sh.worksheet("通帳データ")
-    ws_point = sh.worksheet("ポイント定義")
     # 今回追加した2つのシートを読み込む
     ws_summary = sh.worksheet("獲得集計表")
     ws_balance = sh.worksheet("ポイント残高表")
+    ws_point = sh.worksheet("ポイント定義")
 except Exception as e:
     st.error("スプレッドシートの読み込みに失敗しました。「通帳データ」「ポイント定義」「獲得集計表」「ポイント残高表」の4つのタブがすべて作成されているか確認してください。")
     st.stop()
