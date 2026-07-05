@@ -63,19 +63,27 @@ except Exception as e:
 
 # --- データの読み書き関数 ---
 def load_ledger():
-    records = ws_ledger.get_all_records()
-    if records:
-        df = pd.DataFrame(records)
-        df['日付'] = pd.to_datetime(df['日付'])
-        return df
-    else:
+    try:
+        records = ws_ledger.get_all_records()
+        if records:
+            df = pd.DataFrame(records)
+            df['日付'] = pd.to_datetime(df['日付'])
+            return df
+        else:
+            return pd.DataFrame(columns=["取引通番", "日付", "用途", "ポイント名", "取得", "利用", "状態", "メモ"])
+    except Exception:
+        # シートが完全に空の場合のエラーを回避
         return pd.DataFrame(columns=["取引通番", "日付", "用途", "ポイント名", "取得", "利用", "状態", "メモ"])
 
 def load_point_defs():
-    records = ws_point.get_all_records()
-    if records:
-        return pd.DataFrame(records)
-    else:
+    try:
+        records = ws_point.get_all_records()
+        if records:
+            return pd.DataFrame(records)
+        else:
+            raise ValueError("シートが空です")
+    except Exception:
+        # エラー時や空の場合は初期データを作成して返す
         default_df = pd.DataFrame({
             "ポイント名": ["V", "V期間限定", "V運用", "楽天", "d", "PayPay"],
             "種類": ["一般", "期間限定", "運用", "一般", "一般", "一般"],
