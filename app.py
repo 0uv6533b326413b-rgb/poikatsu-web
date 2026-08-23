@@ -109,7 +109,7 @@ def save_points(df):
     ws_point.clear()
     ws_point.update(values=[df_save.columns.values.tolist()] + df_save.values.tolist(), range_name="A1")
 
-# --- 集計表と残高表の保存関数（今回追加） ---
+# --- 集計表と残高表の保存関数 ---
 def save_summary(pivot_df):
     df_save = pivot_df.copy()
     # 列名が2段構え（取得・2026-06など）になっているのを平らにする
@@ -213,7 +213,7 @@ elif menu == "獲得集計・増減推移表":
     if not df.empty:
         df['年月'] = df['日付'].dt.to_period('M').astype(str)
         
-        # クリックで展開するグラフ
+        # クリックで展開するグラフ（獲得・利用）
         with st.expander("📈 月別の獲得・利用グラフを表示する"):
             graph_df = df.groupby('年月')[['取得', '利用']].sum()
             col1, col2 = st.columns([1, 1])
@@ -240,6 +240,16 @@ elif menu == "獲得集計・増減推移表":
         st.subheader("② 増減推移統括表（月間トータル）")
         df_net = df.copy()
         df_net['増減'] = df_net['取得'] - df_net['利用']
+        
+        # --- 追加：クリックで展開するグラフ（増減推移） ---
+        with st.expander("📉 月別の増減推移グラフを表示する"):
+            net_graph_df = df_net.groupby('年月')['増減'].sum()
+            col3, col4 = st.columns([1, 1])
+            with col3:
+                # 増減（マイナスにもなる）推移なので棒グラフで表示
+                st.bar_chart(net_graph_df)
+        # -----------------------------------------------
+
         pivot_net = pd.pivot_table(
             df_net, index="ポイント名", columns="年月", values="増減", 
             aggfunc="sum", fill_value=0, margins=True, margins_name="合計"
