@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import gspread
+import altair as alt  # --- グラフを細かく設定するためのライブラリを追加 ---
 from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="ポイ活通帳Web", layout="wide")
@@ -112,12 +113,11 @@ def save_points(df):
 # --- 集計表と残高表の保存関数 ---
 def save_summary(pivot_df):
     df_save = pivot_df.copy()
-    # 列名が2段構え（取得・2026-06など）になっているのを平らにする
+    # 列名が2段構えになっているのを平らにする
     if isinstance(df_save.columns, pd.MultiIndex):
         df_save.columns = [f"{col[0]}_{col[1]}" if col[1] else col[0] for col in df_save.columns]
     df_save = df_save.reset_index().fillna(0)
     
-    # スプレッドシートエラー防止のため、数字をすべて標準の数値型に変換
     for col in df_save.columns:
         if pd.api.types.is_numeric_dtype(df_save[col]):
             df_save[col] = pd.to_numeric(df_save[col], errors='coerce').fillna(0).astype(int)
@@ -213,7 +213,6 @@ elif menu == "獲得集計・増減推移表":
     if not df.empty:
         df['年月'] = df['日付'].dt.to_period('M').astype(str)
         
-        # クリックで展開するグラフ（獲得・利用）
         with st.expander("📈 月別の獲得・利用グラフを表示する"):
             graph_df = df.groupby('年月')[['取得', '利用']].sum()
             col1, col2 = st.columns([1, 1])
@@ -231,7 +230,6 @@ elif menu == "獲得集計・増減推移表":
             pivot = pivot.reindex(['合計'] + idx)
         st.dataframe(pivot, use_container_width=True)
         
-        # --- スプレッドシート保存ボタン ---
         if st.button("💾 この獲得・利用集計表をスプレッドシートに保存"):
             save_summary(pivot)
             st.success("スプレッドシートの「獲得集計表」タブに出力しました！")
@@ -241,14 +239,11 @@ elif menu == "獲得集計・増減推移表":
         df_net = df.copy()
         df_net['増減'] = df_net['取得'] - df_net['利用']
         
-        # --- 追加：クリックで展開するグラフ（増減推移） ---
         with st.expander("📉 月別の増減推移グラフを表示する"):
             net_graph_df = df_net.groupby('年月')['増減'].sum()
             col3, col4 = st.columns([1, 1])
             with col3:
-                # 増減（マイナスにもなる）推移なので棒グラフで表示
                 st.bar_chart(net_graph_df)
-        # -----------------------------------------------
 
         pivot_net = pd.pivot_table(
             df_net, index="ポイント名", columns="年月", values="増減", 
@@ -270,32 +265,33 @@ elif menu == "獲得集計・増減推移表":
             except:
                 st.dataframe(pivot_net, use_container_width=True)
 
-        # --- ここから追加：③ 累計獲得ポイント（増減考慮） ---
+        # --- ③ 累計獲得ポイント（増減考慮） ---
         st.markdown("---")
         st.subheader("③ これまでの累計獲得ポイント（全期間の純増減）")
         st.write("アプリに記録を付け始めてからの、ポイントごとの全期間トータル純増減（取得合計 － 利用合計）です。")
         
-        # 全期間の増減をポイント名ごとに合計
         cumulative_df = df_net.groupby("ポイント名")["増減"].sum().reset_index()
         cumulative_df = cumulative_df.rename(columns={"増減": "累計獲得(純増減)"})
-        # 獲得ポイントが多い順に並び替え
         cumulative_df = cumulative_df.sort_values("累計獲得(純増減)", ascending=False)
         
-        # 累計グラフもクリックで展開できるように追加
         with st.expander("📊 累計獲得ポイントのグラフを表示する"):
             col5, col6 = st.columns([1, 1])
             with col5:
-                st.bar_chart(cumulative_df.set_index("ポイント名"))
+                # --- 追加・変更：Altairグラフで降順にソート ---
+                chart = alt.Chart(cumulative_df).mark_bar().encode(
+                    x=alt.X("ポイント名", sort="-y", title="ポイント名"), # sort="-y" でY軸（数値）の降順に設定
+                    y=alt.Y("累計獲得(純増減)", title="純増減")
+                )
+                st.altair_chart(chart, use_container_width=True)
+                # ---------------------------------------------
         
         try:
-            # マイナスの場合は赤字で表示し、インデックス（行番号）を隠してスッキリ表示
             st.dataframe(cumulative_df.style.map(color_red, subset=['累計獲得(純増減)']), use_container_width=True, hide_index=True)
         except AttributeError:
             try:
                 st.dataframe(cumulative_df.style.applymap(color_red, subset=['累計獲得(純増減)']), use_container_width=True)
             except:
                 st.dataframe(cumulative_df, use_container_width=True)
-        # ---------------------------------------------------
 
     else:
         st.info("まだデータがありません。")
@@ -318,7 +314,6 @@ elif menu == "ポイント残高表":
         sorted_display_df = display_df.sort_values("現金換算額", ascending=False)
         st.dataframe(sorted_display_df, use_container_width=True)
         
-        # --- スプレッドシート保存ボタン ---
         if st.button("💾 このポイント残高表をスプレッドシートに保存"):
             save_balance(sorted_display_df)
             st.success("スプレッドシートの「ポイント残高表」タブに出力しました！")
