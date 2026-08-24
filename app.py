@@ -265,7 +265,40 @@ elif menu == "獲得集計・増減推移表":
         try:
             st.dataframe(pivot_net.style.map(color_red), use_container_width=True)
         except AttributeError:
-            st.dataframe(pivot_net.style.applymap(color_red), use_container_width=True)
+            try:
+                st.dataframe(pivot_net.style.applymap(color_red), use_container_width=True)
+            except:
+                st.dataframe(pivot_net, use_container_width=True)
+
+        # --- ここから追加：③ 累計獲得ポイント（増減考慮） ---
+        st.markdown("---")
+        st.subheader("③ これまでの累計獲得ポイント（全期間の純増減）")
+        st.write("アプリに記録を付け始めてからの、ポイントごとの全期間トータル純増減（取得合計 － 利用合計）です。")
+        
+        # 全期間の増減をポイント名ごとに合計
+        cumulative_df = df_net.groupby("ポイント名")["増減"].sum().reset_index()
+        cumulative_df = cumulative_df.rename(columns={"増減": "累計獲得(純増減)"})
+        # 獲得ポイントが多い順に並び替え
+        cumulative_df = cumulative_df.sort_values("累計獲得(純増減)", ascending=False)
+        
+        # 累計グラフもクリックで展開できるように追加
+        with st.expander("📊 累計獲得ポイントのグラフを表示する"):
+            col5, col6 = st.columns([1, 1])
+            with col5:
+                st.bar_chart(cumulative_df.set_index("ポイント名"))
+        
+        try:
+            # マイナスの場合は赤字で表示し、インデックス（行番号）を隠してスッキリ表示
+            st.dataframe(cumulative_df.style.map(color_red, subset=['累計獲得(純増減)']), use_container_width=True, hide_index=True)
+        except AttributeError:
+            try:
+                st.dataframe(cumulative_df.style.applymap(color_red, subset=['累計獲得(純増減)']), use_container_width=True)
+            except:
+                st.dataframe(cumulative_df, use_container_width=True)
+        # ---------------------------------------------------
+
+    else:
+        st.info("まだデータがありません。")
 
 elif menu == "ポイント残高表":
     st.header("💰 現在のポイント残高")
